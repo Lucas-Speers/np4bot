@@ -1,20 +1,28 @@
 # Neptune's Pride 4 Discord Bot
 
-To install dependencies:
+I discord bot to alert you to atacks using an api key
+
+## Install dependencies:
 
 ```bash
 bun install
 ```
 
-Setup `.env.local`:
+## Setup the `.env.local` file:
 
 ```
 DISCORD_TOKEN=your_dicord_token_here
 APP_ID=your_application_id_here
 ```
 
-To run:
+## Deploy commands:
 
 ```bash
-bun run index.ts
+bun deploy-commands.ts
+```
+
+## Running:
+
+```bash
+bun index.ts
 ```
