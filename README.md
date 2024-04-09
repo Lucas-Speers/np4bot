@@ -1,6 +1,6 @@
 # Neptune's Pride 4 Discord Bot
 
-I discord bot to alert you to atacks using an api key
+A discord bot to alert you to atacks in Neptune's Pride 4 using it's api. Writen in typescript using [Bun](https://bun.sh/)
 
 ## Install dependencies:
 
