@@ -2,18 +2,18 @@ import { REST, Routes } from 'discord.js';
 import {readdirSync} from "fs";
 import {join} from "path";
 
-var should_exit = false;
+var missing_env_vars = false;
 
 if (process.env.APP_ID == undefined) {
 	console.error("APP_ID is not defined in `.env.local`");
-	should_exit = true;
+	missing_env_vars = true;
 }
 if (process.env.DISCORD_TOKEN == undefined) {
 	console.error("DISCORD_TOKEN is not defined in `.env.local`");
-	should_exit = true;
+	missing_env_vars = true;
 }
 
-if (should_exit) {process.exit(1)}
+if (missing_env_vars) {process.exit(1)}
 
 const commands = [];
 
