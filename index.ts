@@ -33,7 +33,7 @@ for (const file of commandFiles) {
 }
 
 client.once(Events.ClientReady, (c) => {
-    console.log("\x1b[32m", `Ready! Logged in as ${c.user.tag}`);
+    console.log("\x1b[32m" + `Ready! Logged in as ${c.user.tag}`);
 });
 
 // commands
