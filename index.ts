@@ -1,11 +1,9 @@
 import {ActionRowBuilder, Client, Collection, Events, GatewayIntentBits, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, TextChannel} from "discord.js";
 import {readdirSync} from "fs";
 import {join} from "path";
-import { UserData, SaveData, get_api, load_data, save_data, sleep, update_next_tick_wait } from "./utils";
+import { UserData, SaveData, get_api, load_from_file, save_to_file, sleep, update_next_tick_wait } from "./utils";
 
-save_data(new SaveData());
-
-const save = await load_data();
+const save = await load_from_file();
 
 // create a new Client instance
 const client = new Client({intents: [GatewayIntentBits.Guilds]});
@@ -110,8 +108,6 @@ client.on(Events.InteractionCreate, async interaction => {
 
 		(thread as TextChannel).send(`Tracking game "${scanning_data['name']}"`);
 
-		console.log(thread.id);
-
 		var data = new UserData(
 			code,
 			game,
@@ -165,13 +161,3 @@ while (true) {
 	}
 	await sleep(5_000);
 }
-
-// let params = {
-// 	game_number: 203,
-// 	api_version: "0.1",
-// 	code: "Usfb5HLmCSqt", // already invalidated by the time you're reading this
-// };
-
-// let result = await get(params);
-
-// console.log(result);

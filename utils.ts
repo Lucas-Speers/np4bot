@@ -67,11 +67,11 @@ export class SaveData {
     }
 }
 
-export async function save_data(data: SaveData) {
+export async function save_to_file(data: SaveData) {
     await Bun.write("save.json", JSON.stringify(data));
 }
 
-export async function load_data(): Promise<SaveData> {
+export async function load_from_file(): Promise<SaveData> {
     const file = Bun.file("save.json");
     return JSON.parse(await file.text()) as SaveData;
 }
