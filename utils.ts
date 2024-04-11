@@ -1,50 +1,90 @@
-import type { Collection } from "discord.js";
+export class UserData {
+	static updateNextTickWait(scanning_data: any): number {
+		throw new Error("Method not implemented.");
+	}
+    public code!: string;
+    public game!: number;
+    public guild_thread: any;
+    public time: number;
+    public next_tick_wait!: number;
+    public user_id!: string;
+    public game_started!: boolean;
+    public update!: boolean;
+    public known_attacks!: { a: number; b: number; }[];
+    public players!: string[];
 
-export class PlayerData {
-    code!: string;
-    game_number!: number;
-    guild_thread: any;
-    last_api!: JSON;
-    time: any;
-    next_tick_wait!: number;
-    user_id!: number;
-    game_started!: boolean;
-    game_just_started!: boolean;
-    update!: boolean;
-    known_attacks!: { a: number; b: number; }[];
+    public should_get_api(grace: number) {
+        if (this.update) {
+            this.update = false;
+            return true;
+        }
+        return (Date.now() - this.time) > (this.next_tick_wait + grace);
+    }
+
+    public async get_scanning_data() {
+        const api_data = await get_api(this.game, this.code);
+        const scanning_data = api_data['scanning_data'];
+
+        // update info for api updating
+        this.time = Date.now();
+        this.next_tick_wait = update_next_tick_wait(scanning_data);
+
+        return scanning_data;
+    }
 
     public constructor(
         code: string,
-        game_number: number,
+        game: number,
         guild_thread: any,
-        last_api: JSON,
-        time: any,
+        time: number,
         next_tick_wait: number,
-        user_id: number,
+        user_id: string,
         game_started: boolean,
-        game_just_started: boolean,
-        update: boolean,
-        known_attacks: { a: number; b: number; }[]
+        players: string[],
     ) {
-        
+        this.code = code;
+        this.game = game;
+        this.guild_thread = guild_thread;
+        this.time = time;
+        this.next_tick_wait = next_tick_wait;
+        this.user_id = user_id;
+        this.game_started = game_started;
+        this.update = false;
+        this.known_attacks = new Array();
+        this.players = players;
     }
 }
 
+export function update_next_tick_wait(scanning_data: any) {
+    return scanning_data['config']['tickRate'] * 60 * 1_000 * (1-(scanning_data['tickFragment'] % 1));
+}
+
 export class SaveData {
-    player_data!: PlayerData[];
+    user_data!: UserData[];
+
+    public constructor() {
+        this.user_data = new Array();
+    }
 }
 
-export function save(data: SaveData) {
-
+export async function save_data(data: SaveData) {
+    await Bun.write("save.json", JSON.stringify(data));
 }
 
-export function load(): SaveData {
-
-    return new SaveData();
+export async function load_data(): Promise<SaveData> {
+    const file = Bun.file("save.json");
+    return JSON.parse(await file.text()) as SaveData;
 }
 
-export async function get_api(data: any): Promise<any> {
-    const full_url = `https://neptunespride4.appspot.com/api?${new URLSearchParams(data).toString()}`;
+export async function get_api(game: number, code: string): Promise<any> {
+
+    let params = {
+    	game_number: game,
+    	api_version: "0.1",
+    	code: code,
+    };
+
+    const full_url = `https://neptunespride4.appspot.com/api?${new URLSearchParams(params as any).toString()}`;
     const response = await fetch(full_url, {
         method: "GET",
         headers: {
@@ -55,7 +95,7 @@ export async function get_api(data: any): Promise<any> {
     });
 
     // used to track api usage so Jay doesn't get mad
-    console.log(`Api usage ${data.code} ${data.game_number}`);
+    console.log(`Api usage ${code} ${game}`);
 
     return response.json();
 }

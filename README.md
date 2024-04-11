@@ -8,14 +8,20 @@ A discord bot to alert you to atacks in Neptune's Pride 4 using it's api. Writen
 bun install
 ```
 
-## Setup the `.env.local` file:
+## Setup files:
 
+`.env.local`
 ```
 DISCORD_TOKEN=your_dicord_token_here
 APP_ID=your_application_id_here
 ```
 
-## Deploy commands:
+`save.json`
+```json
+{"user_data":[]}
+```
+
+## Deploy commands (only run once then your good):
 
 ```bash
 bun deploy-commands.ts

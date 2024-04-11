@@ -1,16 +1,11 @@
-import {ActionRow, ActionRowBuilder, Client, Collection, Events, GatewayIntentBits, ModalBuilder, TextInputBuilder, TextInputStyle, GuildTextThreadManager, ChannelManager, GuildChannelManager, ThreadChannel, ChannelType} from "discord.js";
+import {ActionRowBuilder, Client, Collection, Events, GatewayIntentBits, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, TextChannel} from "discord.js";
 import {readdirSync} from "fs";
 import {join} from "path";
-import { PlayerData, get_api, load } from "./utils";
-import { sleep } from "./utils";
+import { UserData, SaveData, get_api, load_data, save_data, sleep, update_next_tick_wait } from "./utils";
 
-const save = load();
+save_data(new SaveData());
 
-// var data = new PlayerData();
-// data.code = "abc";
-// data.game_number = 203;
-
-// save.player_data.push();
+const save = await load_data();
 
 // create a new Client instance
 const client = new Client({intents: [GatewayIntentBits.Guilds]});
@@ -33,7 +28,7 @@ for (const file of commandFiles) {
 }
 
 client.once(Events.ClientReady, (c) => {
-    console.log("\x1b[32m" + `Ready! Logged in as ${c.user.tag}`);
+    console.log("\x1b[32m" + `Ready! Logged in as ${c.user.tag}` + "\x1b[0m");
 });
 
 // commands
@@ -45,10 +40,12 @@ client.on(Events.InteractionCreate, async interaction => {
 	if (!command) {
 		console.error(`No command matching command "${interaction.commandName}" was found.`);
 		return;
+	} else {
+		console.log("\x1b[32m" + `Running command ${interaction.commandName}` + "\x1b[0m");
 	}
 
 	try {
-		await (command as any).execute(interaction);
+		await (command as any).execute(interaction, save);
 	} catch (error) {
 		console.error(error);
 		if (interaction.replied || interaction.deferred) {
@@ -68,6 +65,13 @@ client.on(Events.InteractionCreate, async interaction => {
 			.setCustomId('trackingModal')
 			.setTitle('Track Game');
 
+			const gameIdInput = new TextInputBuilder()
+				.setCustomId('gameIdInput')
+				.setLabel('Game ID')
+				.setMinLength(3)
+				.setRequired(true)
+				.setStyle(TextInputStyle.Short);
+
 			const apiInput = new TextInputBuilder()
 				.setCustomId('apiInput')
 				.setLabel('API Key')
@@ -76,16 +80,9 @@ client.on(Events.InteractionCreate, async interaction => {
 				.setRequired(true)
 				.setStyle(TextInputStyle.Short);
 
-			const gameIdInput = new TextInputBuilder()
-				.setCustomId('gameIdInput')
-				.setLabel('Game ID')
-				.setMinLength(3)
-				.setRequired(true)
-				.setStyle(TextInputStyle.Short);
-
 			modal.addComponents(
-				new ActionRowBuilder().addComponents(apiInput) as any,
-				new ActionRowBuilder().addComponents(gameIdInput) as any
+				new ActionRowBuilder().addComponents(gameIdInput) as any,
+				new ActionRowBuilder().addComponents(apiInput) as any
 			)
 
 			await interaction.showModal(modal);
@@ -97,34 +94,77 @@ client.on(Events.InteractionCreate, async interaction => {
 	if (!interaction.isModalSubmit()) return;
 	if (interaction.customId === 'trackingModal') {
 		await interaction.reply({ content: "Tracking game!", ephemeral: true } as any);
+
+		const game = interaction.fields.getTextInputValue('gameIdInput') as unknown as number;
+		const code = interaction.fields.getTextInputValue('apiInput');
+
+		const api_data = await get_api(game, code);
+		const scanning_data = api_data['scanning_data'];
+
 		const thread = await (interaction.channel as any).threads.create({
-			name: 'new thread',
+			name: scanning_data['name'],
 			type: ChannelType.PrivateThread
 		});
 
 		await thread.members.add(interaction.member?.user.id);
+
+		(thread as TextChannel).send(`Tracking game "${scanning_data['name']}"`);
+
+		console.log(thread.id);
+
+		var data = new UserData(
+			code,
+			game,
+			thread,
+			Date.now(),
+			update_next_tick_wait(scanning_data), // 1000 = 1 second
+			interaction.member?.user.id as string,
+			scanning_data['started'],
+			["a"]
+		);
+		save.user_data.push(data);
+
 	}
 });
 
 await client.login(process.env.DISCORD_TOKEN);
 
 
-// while (true) {
-// 	for (const player in save.player_data) {
-// 		// check if scan data needs to be updated
+while (true) {
+	for (let user of save.user_data) {
+		
+		// check if scan data needs to be updated
+		if (user.should_get_api(15_000)) {
 
-// 		// get scan data
+			var user_message = '';
+			var important = false;
 
-// 		// check if game if currently running or waiting for players
+			// get scan data
+			const scanning_data: any = await user.get_scanning_data();
 
-// 		// check if game just started
+			// check if game is running
+			if (user.game_started) {
+				// check for any notible things in scan data
 
-// 		// check for any notible things in scan data
+			} else {
+				//  or waiting for players
 
-// 		// send message to user
-// 	}
-// 	sleep(5_000);
-// }
+				// check if game just started
+				if (scanning_data['started']) {
+					user.game_started = true;
+					user_message += '\nYour game just started!';
+					important = true;
+				}
+			}
+
+			// send message to user
+			if (user_message != '') {
+				(user.guild_thread as TextChannel).send(user_message + important ? `<@${user.user_id}>` : '');
+			}
+		}
+	}
+	await sleep(5_000);
+}
 
 // let params = {
 // 	game_number: 203,
