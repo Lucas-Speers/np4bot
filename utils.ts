@@ -1,7 +1,4 @@
 export class UserData {
-	static updateNextTickWait(scanning_data: any): number {
-		throw new Error("Method not implemented.");
-	}
     public code!: string;
     public game!: number;
     public guild_thread: any;
