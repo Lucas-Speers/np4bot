@@ -173,5 +173,5 @@ while (true) {
 			save_to_file(save);
 		}
 	}
-	await sleep(5_000);
+	await sleep(30_000);
 }

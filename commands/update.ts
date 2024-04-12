@@ -10,7 +10,7 @@ module.exports = {
         for (let user of save.user_data) {
             if (user.guild_thread.id == interaction.channelId) {
                 user.update = true;
-                await interaction.reply({ content: "Updating...", ephemeral: true } as any);
+                await interaction.reply({ content: "Updating... This could take up to 30 seconds", ephemeral: true } as any);
                 return;
             }
         }
