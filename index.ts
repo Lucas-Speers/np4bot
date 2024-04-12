@@ -1,7 +1,7 @@
 import {ActionRowBuilder, Client, Collection, Events, GatewayIntentBits, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, TextChannel} from "discord.js";
 import {readdirSync} from "fs";
 import {join} from "path";
-import { UserData, SaveData, get_api, load_from_file, save_to_file, sleep, update_next_tick_wait, should_get_api, get_scanning_data } from "./utils";
+import { UserData, SaveData, get_api, load_from_file, save_to_file, sleep, update_next_tick_wait, should_get_api, get_scanning_data, get_new_players } from "./utils";
 
 const save = await load_from_file() as SaveData;
 
@@ -116,7 +116,7 @@ client.on(Events.InteractionCreate, async interaction => {
 			update_next_tick_wait(scanning_data), // 1000 = 1 second
 			interaction.member?.user.id as string,
 			scanning_data['started'],
-			["a"]
+			get_new_players(scanning_data, new Array<String>)
 		);
 		save.user_data.push(data);
 
@@ -133,19 +133,26 @@ while (true) {
 		
 		// check if scan data needs to be updated
 		if (should_get_api(user, 15_000)) {
-
+			
 			var user_message = '';
 			var important = false;
-
+			
 			// get scan data
 			const scanning_data: any = await get_scanning_data(user);
-
+			
 			// check if game is running
 			if (user.game_started) {
 				// check for any notible things in scan data
-
+				
 			} else {
 				//  or waiting for players
+				const new_players = get_new_players(scanning_data, user.players);
+
+				if (new_players.length == 1) {
+					user_message += `New player joined: ${new_players[0]}`;
+				} else if (new_players.length > 1) {
+					user_message += `New players joined: ${new_players.join(', ')}`;
+				}
 
 				// check if game just started
 				if (scanning_data['started']) {
@@ -157,7 +164,10 @@ while (true) {
 
 			// send message to user
 			if (user_message != '') {
-				(user.guild_thread as TextChannel).send(user_message + important ? `<@${user.user_id}>` : '');
+				if (important) {
+					user_message += ` <@${user.user_id}>`;
+				}
+				(user.guild_thread as TextChannel).send(user_message);
 			}
 			
 			save_to_file(save);

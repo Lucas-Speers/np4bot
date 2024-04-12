@@ -33,6 +33,17 @@ export class UserData {
     }
 }
 
+export function get_new_players(scanning_data: any, current_players: Array<String>) {
+    let players = new Array();
+    for (const [i, player] of Object.entries(scanning_data['players'])) {
+        const alias = (player as any)['alias'];
+        if ( alias != '' && current_players.indexOf(alias) == -1) {
+            players.push(alias);
+        }
+    }
+    return players;
+}
+
 export async function get_scanning_data(data: UserData) {
     const api_data = await get_api(data.game, data.code);
     const scanning_data = api_data['scanning_data'];
