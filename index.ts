@@ -1,9 +1,9 @@
 import {ActionRowBuilder, Client, Collection, Events, GatewayIntentBits, ModalBuilder, TextInputBuilder, TextInputStyle, ChannelType, TextChannel} from "discord.js";
 import {readdirSync} from "fs";
 import {join} from "path";
-import { UserData, SaveData, get_api, load_from_file, save_to_file, sleep, update_next_tick_wait } from "./utils";
+import { UserData, SaveData, get_api, load_from_file, save_to_file, sleep, update_next_tick_wait, should_get_api, get_scanning_data } from "./utils";
 
-const save = await load_from_file();
+const save = await load_from_file() as SaveData;
 
 // create a new Client instance
 const client = new Client({intents: [GatewayIntentBits.Guilds]});
@@ -132,13 +132,13 @@ while (true) {
 	for (let user of save.user_data) {
 		
 		// check if scan data needs to be updated
-		if (user.should_get_api(15_000)) {
+		if (should_get_api(user, 15_000)) {
 
 			var user_message = '';
 			var important = false;
 
 			// get scan data
-			const scanning_data: any = await user.get_scanning_data();
+			const scanning_data: any = await get_scanning_data(user);
 
 			// check if game is running
 			if (user.game_started) {

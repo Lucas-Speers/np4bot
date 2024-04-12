@@ -10,25 +10,6 @@ export class UserData {
     public known_attacks!: { a: number; b: number; }[];
     public players!: string[];
 
-    public should_get_api(grace: number) {
-        if (this.update) {
-            this.update = false;
-            return true;
-        }
-        return (Date.now() - this.time) > (this.next_tick_wait + grace);
-    }
-
-    public async get_scanning_data() {
-        const api_data = await get_api(this.game, this.code);
-        const scanning_data = api_data['scanning_data'];
-
-        // update info for api updating
-        this.time = Date.now();
-        this.next_tick_wait = update_next_tick_wait(scanning_data);
-
-        return scanning_data;
-    }
-
     public constructor(
         code: string,
         game: number,
@@ -50,6 +31,25 @@ export class UserData {
         this.known_attacks = new Array();
         this.players = players;
     }
+}
+
+export async function get_scanning_data(data: UserData) {
+    const api_data = await get_api(data.game, data.code);
+    const scanning_data = api_data['scanning_data'];
+
+    // update info for api updating
+    data.time = Date.now();
+    data.next_tick_wait = update_next_tick_wait(scanning_data);
+
+    return scanning_data;
+}
+
+export function should_get_api(data: UserData, grace: number) {
+    if (data.update) {
+        data.update = false;
+        return true;
+    }
+    return (Date.now() - data.time) > (data.next_tick_wait + grace);
 }
 
 export function update_next_tick_wait(scanning_data: any) {
