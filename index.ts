@@ -120,6 +120,8 @@ client.on(Events.InteractionCreate, async interaction => {
 		);
 		save.user_data.push(data);
 
+		save_to_file(save);
+
 	}
 });
 
@@ -157,6 +159,8 @@ while (true) {
 			if (user_message != '') {
 				(user.guild_thread as TextChannel).send(user_message + important ? `<@${user.user_id}>` : '');
 			}
+			
+			save_to_file(save);
 		}
 	}
 	await sleep(5_000);
