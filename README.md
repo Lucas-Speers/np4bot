@@ -14,6 +14,7 @@ bun install
 ```
 DISCORD_TOKEN=your_dicord_token_here
 APP_ID=your_application_id_here
+UPDATE_PERIOD=5 (how long in seconds it waits between checks)
 ```
 
 `save.json`

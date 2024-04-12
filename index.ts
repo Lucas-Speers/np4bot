@@ -173,5 +173,5 @@ while (true) {
 			save_to_file(save);
 		}
 	}
-	await sleep(30_000);
+	await sleep(1_000 * (process.env.UPDATE_PERIOD as unknown as number));
 }
