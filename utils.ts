@@ -103,7 +103,7 @@ export async function get_api(game: number, code: string): Promise<any> {
     });
 
     // used to track api usage so Jay doesn't get mad
-    console.log(`Api usage ${code} ${game}`);
+    console.log(`Api usage ${code} ${Date.now()}`);
 
     return response.json();
 }
