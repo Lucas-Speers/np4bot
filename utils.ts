@@ -1,19 +1,19 @@
 export class UserData {
     public code!: string;
     public game!: number;
-    public guild_thread: any;
+    public guild_thread: string;
     public time: number;
     public next_tick_wait!: number;
     public user_id!: string;
     public game_started!: boolean;
     public update!: boolean;
-    public known_attacks!: { a: number; b: number; }[];
+    public known_attacks!: any;
     public players!: string[];
 
     public constructor(
         code: string,
         game: number,
-        guild_thread: any,
+        guild_thread: string,
         time: number,
         next_tick_wait: number,
         user_id: string,

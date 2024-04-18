@@ -144,6 +144,19 @@ while (true) {
 			if (user.game_started) {
 				// check for any notible things in scan data
 				
+				// Fleet attacks
+				for (const fleet of Object.values(scanning_data['fleets'])) {
+					const destination = (fleet as any)['o'][0];
+					if (destination != undefined) {
+						const star = scanning_data['stars'][destination[1]];
+						const player_id = scanning_data['playerUid'];
+						if (star['puid'] == player_id && (fleet as any)['puid'] != player_id) {
+							user_message += `\nFleet incoming on _ from _`;
+							important = true;
+						}
+					}
+				}
+				
 			} else {
 				//  or waiting for players
 				const new_players = get_new_players(scanning_data, user.players);
@@ -167,7 +180,13 @@ while (true) {
 				if (important) {
 					user_message += ` <@${user.user_id}>`;
 				}
-				(user.guild_thread as TextChannel).send(user_message);
+				const channel = client.channels.cache.get(user.guild_thread) as TextChannel;
+				
+				if (channel != undefined) {
+					channel.send(user_message);
+				} else {
+					console.error(`Channel undefined ${user.guild_thread}`);
+				}
 			}
 			
 			save_to_file(save);
